@@ -13,7 +13,7 @@ enum AppGroup {
 /// 메인 앱이 쓰고 위젯이 읽는 JSON 스냅샷 저장소.
 ///
 /// 기본은 App Group 컨테이너다. 다만 Team 없이 ad-hoc 서명한 빌드에서는 샌드박스 밖의 앱이
-/// 그룹 컨테이너에 쓸 수 없으므로(EPERM), 그때는 `~/Library/Application Support/YouSage/` 에 쓴다.
+/// 그룹 컨테이너에 쓸 수 없으므로(EPERM), 그때는 `~/Library/Application Support/yoUsage/` 에 쓴다.
 /// 위젯은 이 폴더에 대한 읽기 전용 샌드박스 예외를 갖고 있고, 두 위치 중 더 최신인 쪽을 읽는다.
 enum SharedStore {
     private static let fileName = "usage-snapshot.json"
@@ -26,7 +26,7 @@ enum SharedStore {
     private static var fallbackURL: URL? {
         guard let home = getpwuid(getuid())?.pointee.pw_dir else { return nil }
         return URL(fileURLWithPath: String(cString: home), isDirectory: true)
-            .appending(path: "Library/Application Support/YouSage/\(fileName)")
+            .appending(path: "Library/Application Support/yoUsage/\(fileName)")
     }
 
     static func save(_ snapshot: UsageSnapshot) throws {

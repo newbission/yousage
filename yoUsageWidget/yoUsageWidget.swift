@@ -2,19 +2,19 @@ import SwiftUI
 import WidgetKit
 
 @main
-struct YouSageWidgetBundle: WidgetBundle {
+struct YoUsageWidgetBundle: WidgetBundle {
     var body: some Widget {
-        YouSageWidget()
+        YoUsageWidget()
     }
 }
 
-struct YouSageWidget: Widget {
+struct YoUsageWidget: Widget {
     var body: some WidgetConfiguration {
-        StaticConfiguration(kind: "YouSageWidget", provider: UsageTimelineProvider()) { entry in
-            YouSageWidgetView(entry: entry)
+        StaticConfiguration(kind: "yoUsageWidget", provider: UsageTimelineProvider()) { entry in
+            YoUsageWidgetView(entry: entry)
                 .containerBackground(.fill.tertiary, for: .widget)
         }
-        .configurationDisplayName("YouSage")
+        .configurationDisplayName("yoUsage")
         .description("활성 계정의 잔여 쿼터와 리셋 시간을 보여줍니다.")
         .supportedFamilies([.systemSmall])
     }
@@ -47,7 +47,7 @@ struct UsageTimelineProvider: TimelineProvider {
     }
 }
 
-struct YouSageWidgetView: View {
+struct YoUsageWidgetView: View {
     let entry: UsageEntry
 
     var body: some View {
@@ -86,13 +86,13 @@ struct YouSageWidgetView: View {
                 .multilineTextAlignment(.center)
             }
         } else {
-            ContentUnavailableView("데이터 없음", systemImage: "sparkles", description: Text("YouSage 앱을 실행해 주세요."))
+            ContentUnavailableView("데이터 없음", systemImage: "sparkles", description: Text("yoUsage 앱을 실행해 주세요."))
         }
     }
 }
 
 #Preview(as: .systemSmall) {
-    YouSageWidget()
+    YoUsageWidget()
 } timeline: {
     UsageEntry(date: .now, usage: .placeholder)
 }

@@ -33,7 +33,7 @@ struct UsagePopoverView: View {
                 .foregroundStyle(.tint)
 
             VStack(alignment: .leading, spacing: 2) {
-                Text("YouSage")
+                Text("yoUsage")
                     .font(.headline)
                 Text(summary)
                     .font(.caption)

@@ -1,4 +1,4 @@
-name: YouSage
+name: yoUsage
 
 options:
   bundleIdPrefix: com.yousage
@@ -21,58 +21,58 @@ settings:
     ENABLE_HARDENED_RUNTIME: YES
 
 targets:
-  YouSage:
+  yoUsage:
     type: application
     platform: macOS
     sources:
-      - YouSage
+      - yoUsage
       - Shared
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.yousage.app
     info:
-      path: YouSage/Info.plist
+      path: yoUsage/Info.plist
       properties:
-        CFBundleDisplayName: YouSage
+        CFBundleDisplayName: yoUsage
         CFBundleShortVersionString: $(MARKETING_VERSION)
         CFBundleVersion: $(CURRENT_PROJECT_VERSION)
         LSUIElement: true
         LSApplicationCategoryType: public.app-category.utilities
         AppGroupIdentifier: $(APP_GROUP_ID)
     entitlements:
-      path: YouSage/YouSage.entitlements
+      path: yoUsage/yoUsage.entitlements
       properties:
         # 키체인(security CLI)과 ~/.claude, ~/.codex 를 읽어야 하므로 앱은 샌드박스를 끈다.
         com.apple.security.app-sandbox: false
         com.apple.security.application-groups:
           - $(APP_GROUP_ID)
     dependencies:
-      - target: YouSageWidget
+      - target: yoUsageWidget
 
-  YouSageWidget:
+  yoUsageWidget:
     type: app-extension
     platform: macOS
     sources:
-      - YouSageWidget
+      - yoUsageWidget
       - Shared
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.yousage.app.widget
     info:
-      path: YouSageWidget/Info.plist
+      path: yoUsageWidget/Info.plist
       properties:
-        CFBundleDisplayName: YouSage
+        CFBundleDisplayName: yoUsage
         CFBundleShortVersionString: $(MARKETING_VERSION)
         CFBundleVersion: $(CURRENT_PROJECT_VERSION)
         AppGroupIdentifier: $(APP_GROUP_ID)
         NSExtension:
           NSExtensionPointIdentifier: com.apple.widgetkit-extension
     entitlements:
-      path: YouSageWidget/YouSageWidget.entitlements
+      path: yoUsageWidget/yoUsageWidget.entitlements
       properties:
         com.apple.security.app-sandbox: true
         # App Group 컨테이너를 못 쓰는 ad-hoc 빌드용 대체 저장 위치 (SharedStore 참고)
         com.apple.security.temporary-exception.files.home-relative-path.read-only:
-          - /Library/Application Support/YouSage/
+          - /Library/Application Support/yoUsage/
         com.apple.security.application-groups:
           - $(APP_GROUP_ID)

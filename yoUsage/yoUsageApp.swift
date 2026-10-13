@@ -1,7 +1,7 @@
 import SwiftUI
 
 @main
-struct YouSageApp: App {
+struct YoUsageApp: App {
     @State private var manager = UsageManager()
 
     var body: some Scene {

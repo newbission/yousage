@@ -76,9 +76,9 @@ func runProcess(_ executable: String, arguments: [String]) async -> Data? {
 }
 
 /// 문제 해결용 기록. 서비스가 응답 형식을 바꿨을 때 원인을 확인할 수 있도록
-/// 마지막 응답 본문(사용률 수치만 담겨 있고 토큰은 없다)과 오류를 `~/Library/Logs/YouSage/` 에 남긴다.
+/// 마지막 응답 본문(사용률 수치만 담겨 있고 토큰은 없다)과 오류를 `~/Library/Logs/yoUsage/` 에 남긴다.
 enum Diagnostics {
-    static let directory = FileManager.default.homeDirectoryForCurrentUser.appending(path: "Library/Logs/YouSage")
+    static let directory = FileManager.default.homeDirectoryForCurrentUser.appending(path: "Library/Logs/yoUsage")
 
     static func record(_ name: String, _ text: String) {
         try? FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
