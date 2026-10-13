@@ -10,23 +10,38 @@ enum AppGroup {
     }
 }
 
-/// 메인 앱과 위젯이 함께 쓰는 App Group 컨테이너 내 JSON 저장소.
+/// 메인 앱이 쓰고 위젯이 읽는 JSON 스냅샷 저장소.
+///
+/// 기본은 App Group 컨테이너다. 다만 Team 없이 ad-hoc 서명한 빌드에서는 샌드박스 밖의 앱이
+/// 그룹 컨테이너에 쓸 수 없으므로(EPERM), 그때는 `~/Library/Application Support/YouSage/` 에 쓴다.
+/// 위젯은 이 폴더에 대한 읽기 전용 샌드박스 예외를 갖고 있고, 두 위치 중 더 최신인 쪽을 읽는다.
 enum SharedStore {
-    enum StoreError: Error {
-        case containerUnavailable
+    private static let fileName = "usage-snapshot.json"
+
+    private static var groupURL: URL? {
+        AppGroup.containerURL?.appending(path: fileName)
     }
 
-    private static var snapshotURL: URL? {
-        AppGroup.containerURL?.appending(path: "usage-snapshot.json")
+    /// 샌드박스 안(위젯)에서도 컨테이너가 아닌 실제 홈 폴더를 가리키도록 passwd 에서 읽는다.
+    private static var fallbackURL: URL? {
+        guard let home = getpwuid(getuid())?.pointee.pw_dir else { return nil }
+        return URL(fileURLWithPath: String(cString: home), isDirectory: true)
+            .appending(path: "Library/Application Support/YouSage/\(fileName)")
     }
 
     static func save(_ snapshot: UsageSnapshot) throws {
-        guard let url = snapshotURL else { throw StoreError.containerUnavailable }
-        try JSONEncoder().encode(snapshot).write(to: url, options: .atomic)
+        let data = try JSONEncoder().encode(snapshot)
+        if let groupURL, (try? data.write(to: groupURL, options: .atomic)) != nil { return }
+        guard let fallbackURL else { throw CocoaError(.fileWriteNoPermission) }
+        try FileManager.default.createDirectory(at: fallbackURL.deletingLastPathComponent(), withIntermediateDirectories: true)
+        try data.write(to: fallbackURL, options: .atomic)
     }
 
     static func load() -> UsageSnapshot? {
-        guard let url = snapshotURL, let data = try? Data(contentsOf: url) else { return nil }
-        return try? JSONDecoder().decode(UsageSnapshot.self, from: data)
+        [groupURL, fallbackURL]
+            .compactMap { $0 }
+            .compactMap { try? Data(contentsOf: $0) }
+            .compactMap { try? JSONDecoder().decode(UsageSnapshot.self, from: $0) }
+            .max { $0.updatedAt < $1.updatedAt }
     }
 }

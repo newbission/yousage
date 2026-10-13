@@ -1,6 +1,6 @@
 import Foundation
 
-/// UI 개발·동작 검증용 Mock. 실제 5시간 롤링 윈도우처럼 시간이 지날수록 사용률이 오르고
+/// SwiftUI 프리뷰·UI 개발용 Mock. 실제 5시간 롤링 윈도우처럼 시간이 지날수록 사용률이 오르고
 /// 리셋 시각이 지나면 다시 낮아진다.
 struct MockUsageProvider: UsageProvider {
     let kind: ProviderKind
@@ -19,40 +19,41 @@ struct MockUsageProvider: UsageProvider {
         let elapsed = (now - windowStart) / Self.window
 
         let floor = seed * 75
-        let usedPercent = floor + elapsed * (100 - floor) * 0.8
-
-        let capacity = 2_400_000.0
-        let consumed = usedPercent / 100 * capacity
-        let weights = [0.55 + seed * 0.2, 0.35 - seed * 0.15, 0.10 - seed * 0.05]
-        let breakdown = zip(modelNames, weights).map { name, weight in
-            ModelUsage(name: name, tokens: Int(consumed * weight))
-        }
+        let weekReset = Date.now.addingTimeInterval((1 + seed * 5) * 86_400)
 
         return AccountUsage(
             id: account.id,
             name: account.name,
             provider: account.provider,
-            usedPercent: usedPercent,
+            email: "\(account.name.lowercased())@example.com",
+            plan: kind == .claudeCode ? "Max 5x" : "Plus",
+            usedPercent: floor + elapsed * (100 - floor) * 0.8,
             resetDate: Date(timeIntervalSinceReferenceDate: windowStart + Self.window),
-            modelBreakdown: breakdown
+            additionalLimits: [
+                UsageLimit(id: "weekly", title: "주간", usedPercent: 20 + seed * 60, resetDate: weekReset),
+            ]
         )
-    }
-
-    private var modelNames: [String] {
-        switch kind {
-        case .claudeCode, .anthropic: ["Sonnet", "Opus", "Haiku"]
-        case .chatGPT: ["GPT-5", "GPT-5 mini", "o-series"]
-        case .gemini: ["Gemini Pro", "Gemini Flash", "Flash-Lite"]
-        case .cursor: ["Auto", "Sonnet", "GPT-5"]
-        }
     }
 }
 
 extension Account {
-    /// 실제 계정 등록 UI 가 생기기 전까지 쓰는 기본 계정 목록.
     static let samples: [Account] = [
         Account(id: UUID(uuidString: "26000000-0000-4000-8000-000000000001")!, name: "Personal", provider: .claudeCode),
-        Account(id: UUID(uuidString: "99000000-0000-4000-8000-000000000002")!, name: "Work", provider: .anthropic),
-        Account(id: UUID(uuidString: "EE000000-0000-4000-8000-000000000003")!, name: "Side Project", provider: .cursor),
+        Account(id: UUID(uuidString: "99000000-0000-4000-8000-000000000002")!, name: "Work", provider: .claudeCode, configPath: "~/.claude-work"),
+        Account(id: UUID(uuidString: "EE000000-0000-4000-8000-000000000003")!, name: "Codex", provider: .codex),
     ]
+}
+
+extension UsageManager {
+    /// Mock 데이터로 동작하며 실제 설정·위젯 저장소를 건드리지 않는 인스턴스.
+    static var preview: UsageManager {
+        let defaults = UserDefaults(suiteName: "com.yousage.preview")!
+        defaults.removePersistentDomain(forName: "com.yousage.preview")
+        defaults.set(try? JSONEncoder().encode(Account.samples), forKey: "accounts")
+        return UsageManager(
+            providers: ProviderKind.allCases.map(MockUsageProvider.init),
+            defaults: defaults,
+            sharesWithWidget: false
+        )
+    }
 }

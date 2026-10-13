@@ -40,8 +40,8 @@ struct UsageTimelineProvider: TimelineProvider {
         let usage = SharedStore.load()?.activeUsage
         var entries = [UsageEntry(date: now, usage: usage)]
         // 리셋 시각에 카운트다운 표시를 전환한다. 새 수치는 앱이 폴링 후 타임라인을 다시 로드해 반영한다.
-        if let usage, usage.resetDate > now {
-            entries.append(UsageEntry(date: usage.resetDate, usage: usage))
+        if let usage, let resetDate = usage.resetDate, resetDate > now {
+            entries.append(UsageEntry(date: resetDate, usage: usage))
         }
         completion(Timeline(entries: entries, policy: .after(now.addingTimeInterval(15 * 60))))
     }
@@ -75,7 +75,11 @@ struct YouSageWidgetView: View {
 
                 HStack(spacing: 3) {
                     Image(systemName: "clock.arrow.circlepath")
-                    ResetCountdownText(resetDate: usage.resetDate, now: entry.date)
+                    if let resetDate = usage.resetDate {
+                        ResetCountdownText(resetDate: resetDate, now: entry.date)
+                    } else {
+                        Text("대기 중")
+                    }
                 }
                 .font(.caption2)
                 .foregroundStyle(.secondary)

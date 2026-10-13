@@ -14,7 +14,9 @@ struct AccountCardView: View {
             if let usage {
                 gauge(for: usage)
                 resetRow(for: usage)
-                modelBreakdown(for: usage)
+                if !usage.additionalLimits.isEmpty {
+                    additionalLimits(for: usage)
+                }
             } else if errorMessage == nil {
                 ProgressView()
                     .controlSize(.small)
@@ -25,6 +27,7 @@ struct AccountCardView: View {
                 Label(errorMessage, systemImage: "exclamationmark.triangle")
                     .font(.caption)
                     .foregroundStyle(.red)
+                    .fixedSize(horizontal: false, vertical: true)
             }
         }
         .padding(12)
@@ -32,17 +35,32 @@ struct AccountCardView: View {
     }
 
     private var titleRow: some View {
-        HStack(spacing: 6) {
+        HStack(alignment: .top, spacing: 8) {
             Image(systemName: account.provider.symbolName)
                 .foregroundStyle(.secondary)
-            Text(account.name)
-                .font(.headline)
-            Text(account.provider.displayName)
-                .font(.caption2.weight(.medium))
-                .padding(.horizontal, 6)
-                .padding(.vertical, 2)
-                .background(.tint.opacity(0.15), in: .capsule)
-                .foregroundStyle(.tint)
+                .frame(width: 18)
+
+            VStack(alignment: .leading, spacing: 2) {
+                HStack(spacing: 6) {
+                    Text(account.name)
+                        .font(.headline)
+                        .lineLimit(1)
+                    Text(account.provider.displayName)
+                        .font(.caption2.weight(.medium))
+                        .padding(.horizontal, 6)
+                        .padding(.vertical, 2)
+                        .background(.tint.opacity(0.15), in: .capsule)
+                        .foregroundStyle(.tint)
+                        .fixedSize()
+                }
+                if let detail {
+                    Text(detail)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
+                        .truncationMode(.middle)
+                }
+            }
 
             Spacer()
 
@@ -53,6 +71,12 @@ struct AccountCardView: View {
             .buttonStyle(.borderless)
             .help(isActive ? "메뉴바에 표시 중" : "메뉴바에 표시")
         }
+    }
+
+    /// "이메일 · 플랜"
+    private var detail: String? {
+        let parts = [usage?.email, usage?.plan].compactMap { $0 }
+        return parts.isEmpty ? nil : parts.joined(separator: " · ")
     }
 
     private func gauge(for usage: AccountUsage) -> some View {
@@ -70,47 +94,68 @@ struct AccountCardView: View {
                     .monospacedDigit()
                     .contentTransition(.numericText())
             }
-            // 시스템 Gauge 는 창이 비활성일 때 회색으로 바뀌므로 상태 색이 항상 보이도록 직접 그린다.
-            Capsule()
-                .fill(usage.level.color.opacity(0.2))
-                .overlay(alignment: .leading) {
-                    GeometryReader { proxy in
-                        Capsule()
-                            .fill(usage.level.color.gradient)
-                            .frame(width: proxy.size.width * min(max(usage.usedPercent / 100, 0), 1))
-                    }
-                }
+            UsageBar(usedPercent: usage.usedPercent)
                 .frame(height: 6)
-                .animation(.smooth, value: usage.usedPercent)
         }
     }
 
+    @ViewBuilder
     private func resetRow(for usage: AccountUsage) -> some View {
         HStack(spacing: 4) {
             Image(systemName: "clock.arrow.circlepath")
-            ResetCountdownText(resetDate: usage.resetDate)
-            Text("후 리셋")
-            Spacer()
-            Text(usage.resetDate, format: .dateTime.hour().minute())
+            if let resetDate = usage.resetDate {
+                ResetCountdownText(resetDate: resetDate)
+                Text("후 리셋")
+                Spacer()
+                Text(resetDate, format: .dateTime.hour().minute())
+            } else {
+                Text("진행 중인 윈도우 없음")
+            }
         }
         .font(.caption)
         .foregroundStyle(.secondary)
     }
 
-    private func modelBreakdown(for usage: AccountUsage) -> some View {
-        Grid(alignment: .leading, horizontalSpacing: 8, verticalSpacing: 4) {
-            ForEach(usage.modelBreakdown) { model in
+    private func additionalLimits(for usage: AccountUsage) -> some View {
+        Grid(alignment: .leading, horizontalSpacing: 8, verticalSpacing: 5) {
+            ForEach(usage.additionalLimits) { limit in
                 GridRow {
-                    Text(model.name)
-                    ProgressView(value: usage.share(of: model))
-                        .tint(.secondary)
-                    Text(model.tokens, format: .number.notation(.compactName))
+                    Text(limit.title)
+                    UsageBar(usedPercent: limit.usedPercent)
+                        .frame(height: 4)
+                    Text(limit.usedPercent / 100, format: .percent.precision(.fractionLength(0)))
                         .monospacedDigit()
                         .gridColumnAlignment(.trailing)
+                    if let resetDate = limit.resetDate {
+                        Text(resetDate, format: .dateTime.month(.defaultDigits).day().hour().minute())
+                            .foregroundStyle(.tertiary)
+                            .gridColumnAlignment(.trailing)
+                    } else {
+                        Text("")
+                    }
                 }
             }
         }
         .font(.caption)
         .foregroundStyle(.secondary)
+    }
+}
+
+/// 상태 색으로 채워지는 가로 막대. 시스템 Gauge 는 창이 비활성일 때 회색으로 바뀌므로 직접 그린다.
+private struct UsageBar: View {
+    let usedPercent: Double
+
+    var body: some View {
+        let color = UsageLevel(usedPercent: usedPercent).color
+        Capsule()
+            .fill(color.opacity(0.2))
+            .overlay(alignment: .leading) {
+                GeometryReader { proxy in
+                    Capsule()
+                        .fill(color.gradient)
+                        .frame(width: proxy.size.width * min(max(usedPercent / 100, 0), 1))
+                }
+            }
+            .animation(.smooth, value: usedPercent)
     }
 }

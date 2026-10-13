@@ -3,67 +3,77 @@ import Foundation
 /// 지원하는 AI 서비스 종류. 새 서비스를 붙일 때 case 를 추가하고 `UsageProvider` 구현체를 등록한다.
 enum ProviderKind: String, Codable, CaseIterable, Sendable {
     case claudeCode
-    case anthropic
-    case chatGPT
-    case gemini
-    case cursor
+    case codex
 
     var displayName: String {
         switch self {
         case .claudeCode: "Claude Code"
-        case .anthropic: "Anthropic"
-        case .chatGPT: "ChatGPT"
-        case .gemini: "Gemini"
-        case .cursor: "Cursor"
+        case .codex: "Codex"
         }
     }
 
     var symbolName: String {
         switch self {
         case .claudeCode: "terminal"
-        case .anthropic: "sparkles"
-        case .chatGPT: "bubble.left.and.bubble.right"
-        case .gemini: "diamond"
-        case .cursor: "cursorarrow.rays"
+        case .codex: "chevron.left.forwardslash.chevron.right"
+        }
+    }
+
+    /// CLI 가 로그인 정보를 두는 기본 폴더 (`CLAUDE_CONFIG_DIR` / `CODEX_HOME` 의 기본값).
+    var defaultConfigPath: String {
+        switch self {
+        case .claudeCode: "~/.claude"
+        case .codex: "~/.codex"
+        }
+    }
+
+    var dashboardURL: URL {
+        switch self {
+        case .claudeCode: URL(string: "https://claude.ai/settings/usage")!
+        case .codex: URL(string: "https://chatgpt.com/codex/settings/usage")!
         }
     }
 }
 
-/// 사용자가 등록한 계정. 같은 서비스에 여러 계정(개인/업무용)을 둘 수 있다.
+/// 사용자가 등록한 계정. 계정 하나는 "CLI 설정 폴더 하나"에 대응한다.
 struct Account: Identifiable, Codable, Hashable, Sendable {
     let id: UUID
     var name: String
     var provider: ProviderKind
+    /// CLI 설정 폴더의 절대 경로. `nil` 이면 서비스 기본 폴더.
+    var configPath: String?
+
+    var configDirectory: URL {
+        let path = configPath ?? provider.defaultConfigPath
+        return URL(fileURLWithPath: NSString(string: path).expandingTildeInPath, isDirectory: true)
+    }
 }
 
-/// 모델별 소비량.
-struct ModelUsage: Identifiable, Codable, Hashable, Sendable {
-    var name: String
-    var tokens: Int
-
-    var id: String { name }
+/// 5시간 세션 외의 추가 한도 (주간, 모델별 주간 등).
+struct UsageLimit: Identifiable, Codable, Hashable, Sendable {
+    var id: String
+    var title: String
+    /// 0...100
+    var usedPercent: Double
+    var resetDate: Date?
 }
 
-/// 한 계정의 현재 롤링 윈도우 사용량 스냅샷.
+/// 한 계정의 현재 사용량 스냅샷.
 struct AccountUsage: Identifiable, Codable, Hashable, Sendable {
     /// `Account.id` 와 동일.
     let id: UUID
     var name: String
     var provider: ProviderKind
-    /// 현재 윈도우에서 소진한 쿼터 (0...100).
+    var email: String?
+    var plan: String?
+    /// 5시간 롤링 윈도우에서 소진한 쿼터 (0...100).
     var usedPercent: Double
-    /// 윈도우가 리셋되는 시각.
-    var resetDate: Date
-    var modelBreakdown: [ModelUsage]
+    /// 5시간 윈도우가 리셋되는 시각. 윈도우가 아직 시작되지 않았으면 `nil`.
+    var resetDate: Date?
+    var additionalLimits: [UsageLimit]
 
     var remainingPercent: Double { 100 - usedPercent }
     var level: UsageLevel { UsageLevel(usedPercent: usedPercent) }
-    var totalTokens: Int { modelBreakdown.reduce(0) { $0 + $1.tokens } }
-
-    /// 전체 소비량 중 해당 모델이 차지하는 비율 (0...1).
-    func share(of model: ModelUsage) -> Double {
-        totalTokens > 0 ? Double(model.tokens) / Double(totalTokens) : 0
-    }
 }
 
 /// 앱이 저장하고 위젯이 읽는 공유 데이터.
@@ -83,11 +93,10 @@ extension AccountUsage {
         id: UUID(),
         name: "Personal",
         provider: .claudeCode,
+        email: nil,
+        plan: "Max",
         usedPercent: 22,
         resetDate: .now.addingTimeInterval(3 * 3600 + 12 * 60),
-        modelBreakdown: [
-            ModelUsage(name: "Sonnet", tokens: 410_000),
-            ModelUsage(name: "Opus", tokens: 180_000),
-        ]
+        additionalLimits: []
     )
 }
