@@ -1,0 +1,6 @@
+.DS_Store
+build/
+DerivedData/
+xcuserdata/
+# project.yml 에서 `xcodegen generate` 로 생성한다.
+*.xcodeproj

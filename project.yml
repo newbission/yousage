@@ -1,0 +1,75 @@
+name: YouSage
+
+options:
+  bundleIdPrefix: com.yousage
+  deploymentTarget:
+    macOS: "26.0"
+  createIntermediateGroups: true
+
+settings:
+  base:
+    SWIFT_VERSION: "6.0"
+    MARKETING_VERSION: "0.1.0"
+    CURRENT_PROJECT_VERSION: 1
+    # 앱 ↔ 위젯 공유 스토리지. entitlements 와 Info.plist 양쪽에서 이 값을 참조한다.
+    # macOS 전용 "<TeamID>.<name>" 형식이라 프로비저닝 프로파일 없이도 빌드된다.
+    APP_GROUP_ID: $(TeamIdentifierPrefix)com.yousage.shared
+    # 본인 Team ID 를 넣으면 자동 서명으로 전환된다. 비워두면 ad-hoc("Sign to Run Locally").
+    DEVELOPMENT_TEAM: ""
+    CODE_SIGN_STYLE: Automatic
+    CODE_SIGN_IDENTITY: "-"
+    ENABLE_HARDENED_RUNTIME: YES
+
+targets:
+  YouSage:
+    type: application
+    platform: macOS
+    sources:
+      - YouSage
+      - Shared
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.yousage.app
+    info:
+      path: YouSage/Info.plist
+      properties:
+        CFBundleDisplayName: YouSage
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+        LSUIElement: true
+        LSApplicationCategoryType: public.app-category.utilities
+        AppGroupIdentifier: $(APP_GROUP_ID)
+    entitlements:
+      path: YouSage/YouSage.entitlements
+      properties:
+        com.apple.security.app-sandbox: true
+        com.apple.security.network.client: true
+        com.apple.security.application-groups:
+          - $(APP_GROUP_ID)
+    dependencies:
+      - target: YouSageWidget
+
+  YouSageWidget:
+    type: app-extension
+    platform: macOS
+    sources:
+      - YouSageWidget
+      - Shared
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.yousage.app.widget
+    info:
+      path: YouSageWidget/Info.plist
+      properties:
+        CFBundleDisplayName: YouSage
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+        AppGroupIdentifier: $(APP_GROUP_ID)
+        NSExtension:
+          NSExtensionPointIdentifier: com.apple.widgetkit-extension
+    entitlements:
+      path: YouSageWidget/YouSageWidget.entitlements
+      properties:
+        com.apple.security.app-sandbox: true
+        com.apple.security.application-groups:
+          - $(APP_GROUP_ID)
