@@ -16,8 +16,8 @@ enum UsageLevel: Sendable {
 
     var color: Color {
         switch self {
-        case .comfortable: .green
-        case .caution: .orange
+        case .comfortable: Color(red: 0.12, green: 0.65, blue: 0.51)
+        case .caution: Color(red: 0.95, green: 0.67, blue: 0.08)
         case .critical: .red
         }
     }

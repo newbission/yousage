@@ -9,7 +9,7 @@ struct AccountCardView: View {
     let onSelect: () -> Void
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
+        VStack(alignment: .leading, spacing: 16) {
             titleRow
 
             if let usage {
@@ -31,15 +31,21 @@ struct AccountCardView: View {
                     .fixedSize(horizontal: false, vertical: true)
             }
         }
-        .padding(12)
-        .background(.quaternary.opacity(0.5), in: .rect(cornerRadius: 12))
+        .padding(18)
+        .background(.background.opacity(0.7), in: .rect(cornerRadius: 20))
+        .overlay {
+            RoundedRectangle(cornerRadius: 20)
+                .strokeBorder(isActive ? YoUsageStyle.accent.opacity(0.35) : Color.primary.opacity(0.06), lineWidth: 1)
+        }
     }
 
     private var titleRow: some View {
         HStack(alignment: .top, spacing: 8) {
             Image(systemName: account.provider.symbolName)
-                .foregroundStyle(.secondary)
-                .frame(width: 18)
+                .font(.system(size: 15, weight: .semibold))
+                .foregroundStyle(account.provider == .claudeCode ? Color.orange : YoUsageStyle.accent)
+                .frame(width: 34, height: 34)
+                .background(.primary.opacity(0.045), in: .rect(cornerRadius: 10))
 
             VStack(alignment: .leading, spacing: 2) {
                 HStack(spacing: 6) {
@@ -66,8 +72,8 @@ struct AccountCardView: View {
             Spacer()
 
             Button(action: onSelect) {
-                Image(systemName: isActive ? "menubar.arrow.up.rectangle" : "menubar.rectangle")
-                    .foregroundStyle(isActive ? AnyShapeStyle(.tint) : AnyShapeStyle(.tertiary))
+                Image(systemName: isActive ? "pin.fill" : "pin")
+                    .foregroundStyle(isActive ? AnyShapeStyle(YoUsageStyle.accent) : AnyShapeStyle(.secondary))
             }
             .buttonStyle(.borderless)
             .help(isActive ? "메뉴바에 표시 중" : "메뉴바에 표시")
@@ -81,22 +87,37 @@ struct AccountCardView: View {
     }
 
     private func gauge(for usage: AccountUsage) -> some View {
-        VStack(alignment: .leading, spacing: 4) {
-            HStack(alignment: .firstTextBaseline) {
-                Text("5시간 · \(preferences.label)")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
+        let level = UsageLevel(usedPercent: usage.usedPercent, preferences: preferences)
+        return VStack(alignment: .leading, spacing: 12) {
+            HStack(alignment: .center) {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("5시간 구독 한도")
+                        .font(.caption.weight(.medium))
+                        .foregroundStyle(.secondary)
+                    HStack(alignment: .firstTextBaseline, spacing: 6) {
+                        Text(preferences.percent(used: usage.usedPercent) / 100,
+                             format: .percent.precision(.fractionLength(0)))
+                            .font(.system(size: 42, weight: .semibold, design: .rounded))
+                            .tracking(-1.5)
+                            .monospacedDigit()
+                            .contentTransition(.numericText())
+                        Text(preferences.label)
+                            .font(.callout)
+                            .foregroundStyle(.secondary)
+                    }
+                }
                 Spacer()
-                Text(UsageLevel(usedPercent: usage.usedPercent, preferences: preferences).label)
-                    .font(.caption2.weight(.semibold))
-                    .foregroundStyle(UsageLevel(usedPercent: usage.usedPercent, preferences: preferences).color)
-                Text(preferences.percent(used: usage.usedPercent) / 100, format: .percent.precision(.fractionLength(0)))
-                    .font(.callout.weight(.semibold))
-                    .monospacedDigit()
-                    .contentTransition(.numericText())
+                Text(level.label)
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(level.color)
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 6)
+                    .background(level.color.opacity(0.1), in: .capsule)
             }
             UsageBar(usedPercent: usage.usedPercent)
-                .frame(height: 6)
+                .frame(height: 8)
+                .accessibilityLabel("5시간 \(preferences.label)")
+                .accessibilityValue("\(Int(preferences.percent(used: usage.usedPercent)))퍼센트")
         }
     }
 
@@ -118,27 +139,30 @@ struct AccountCardView: View {
     }
 
     private func additionalLimits(for usage: AccountUsage) -> some View {
-        Grid(alignment: .leading, horizontalSpacing: 8, verticalSpacing: 5) {
+        VStack(spacing: 12) {
+            Divider().opacity(0.6)
             ForEach(usage.additionalLimits) { limit in
-                GridRow {
-                    Text("\(limit.title) · \(preferences.label)")
+                VStack(spacing: 6) {
+                    HStack {
+                        Text(limit.title)
+                            .foregroundStyle(.secondary)
+                        Spacer()
+                        Text("\(Int(preferences.percent(used: limit.usedPercent).rounded()))% \(preferences.label)")
+                            .fontWeight(.medium)
+                            .monospacedDigit()
+                    }
                     UsageBar(usedPercent: limit.usedPercent)
                         .frame(height: 4)
-                    Text(preferences.percent(used: limit.usedPercent) / 100, format: .percent.precision(.fractionLength(0)))
-                        .monospacedDigit()
-                        .gridColumnAlignment(.trailing)
                     if let resetDate = limit.resetDate {
-                        Text(resetDate, format: .dateTime.month(.defaultDigits).day().hour().minute())
+                        Text("\(resetDate.formatted(.dateTime.month(.defaultDigits).day().hour().minute())) 리셋")
+                            .font(.system(size: 10))
                             .foregroundStyle(.tertiary)
-                            .gridColumnAlignment(.trailing)
-                    } else {
-                        Text("")
+                            .frame(maxWidth: .infinity, alignment: .trailing)
                     }
                 }
             }
         }
         .font(.caption)
-        .foregroundStyle(.secondary)
     }
 }
 
@@ -159,5 +183,6 @@ private struct UsageBar: View {
                 }
             }
             .animation(.smooth, value: usedPercent)
+            .animation(.smooth, value: preferences)
     }
 }

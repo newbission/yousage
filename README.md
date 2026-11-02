@@ -1,6 +1,6 @@
 # yoUsage
 
-Claude Code 를 비롯한 AI 계정의 세션 쿼터(5시간 롤링 윈도우), 사용량, 리셋 타이머를 메뉴바와 위젯에서 보여주는 macOS 유틸리티.
+Claude Code · Codex **구독 계정**의 남은 한도와 리셋 타이머를 메뉴바·위젯·터미널에서 보여주는 macOS 유틸리티. API 키로 사용하는 종량제 비용은 현재 추적하지 않는다.
 
 지원 서비스: **Claude Code**, **Codex (ChatGPT)**
 
@@ -216,3 +216,26 @@ struct GeminiProvider: UsageProvider {
 기본값은 남은 용량, 주의는 사용률 60% 이상(잔여 40% 이하), 위험은 사용률 85% 이상(잔여 15% 이하)이다.
 색상 기준은 항상 사용률 기준이며 표시 방향을 바꿔도 경고의 의미는 같다.
 설정은 저장되며 메뉴바·팝업·위젯·터미널에 적용된다. 기본값 복원도 지원한다.
+
+### 브랜드 아이콘
+
+앱 아이콘과 메뉴바 아이콘은 원호·눈금·바늘로 구성된 구독 잔량 게이지 형태를 공유한다.
+`swift tools/generate-icons.swift`로 AppIcon과 밝고 어두운 메뉴바에 대응하는 template 아이콘을 재생성한다.
+
+### API 지원을 확장할 경우
+
+구독 한도와 API 비용은 별도 데이터·화면으로 다룬다. API도 토큰·요청 사용량이 있지만,
+구독의 5시간/주간 한도로 환산하지 않는다. API 화면은 일간·월간 비용, 토큰·요청 수,
+사용자가 정한 월 예산과 예산 대비 잔여 금액을 중심으로 설계한다. 예산을 설정하지 않으면 잔여 %를 표시하지 않는다.
+예산은 yoUsage의 알림 기준이며 공급자의 청구 제한이나 자동 차단 기능을 의미하지 않는다.
+인증과 비용 조회 연동은 아직 구현하지 않았다. Codex의 API 키 로그인은 구독 계정과 구분해 안내한다.
+
+공식 조회 기능:
+- OpenAI: https://developers.openai.com/api/reference/resources/admin/subresources/organization/subresources/usage/methods/costs
+- Anthropic: https://platform.claude.com/docs/en/manage-claude/usage-cost-analytics-api
+
+### 메뉴바 실시간 게이지
+
+메뉴바는 눈금·바늘 없이 원호 게이지와 퍼센트만 표시한다. 표시 설정에 따라 남은 양 또는 사용한 양을 채우고,
+사용자 지정 경고 기준에 맞춰 초록·노랑·빨강으로 바뀐다. macOS가 색을 지우지 않도록 non-template 이미지로 렌더링한다.
+수치는 기존 자동 조회 주기와 수동 새로고침 시 갱신되며, 서버에서 실시간으로 푸시되는 데이터는 아니다.

@@ -11,6 +11,23 @@ struct SettingsView: View {
         @Bindable var manager = manager
 
         Form {
+            Section {
+                HStack(spacing: 14) {
+                    BrandBadge(size: 52)
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("yoUsage")
+                            .font(.system(size: 24, weight: .bold, design: .rounded))
+                        Text("구독의 여유를, 한눈에.")
+                            .font(.callout)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+                .padding(.vertical, 6)
+                Text("Claude Code · Codex 구독 계정의 한도와 리셋 시간을 확인합니다. API 키로 사용하는 종량제 비용은 추적하지 않습니다.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+
             Section("일반") {
                 Toggle("로그인 시 자동 시작", isOn: Binding(
                     get: { loginItemStatus == .enabled || loginItemStatus == .requiresApproval },
@@ -35,6 +52,29 @@ struct SettingsView: View {
             }
 
             Section {
+                Picker("퍼센트 표시", selection: $manager.displayPreferences.showsRemaining) {
+                    Text("남은 용량").tag(true)
+                    Text("사용한 양").tag(false)
+                }
+                .pickerStyle(.segmented)
+                displayPreview
+                Stepper("주의 (노랑): 사용률 \(manager.displayPreferences.cautionPercent)% 이상",
+                        value: $manager.displayPreferences.cautionPercent,
+                        in: 1...(manager.displayPreferences.criticalPercent - 1))
+                Stepper("위험 (빨강): 사용률 \(manager.displayPreferences.criticalPercent)% 이상",
+                        value: $manager.displayPreferences.criticalPercent,
+                        in: (manager.displayPreferences.cautionPercent + 1)...100)
+                Button("표시 설정 기본값으로 복원") {
+                    manager.displayPreferences = .init()
+                }
+            } header: {
+                Text("용량 표시 · 색상 기준")
+            } footer: {
+                Text("색상 기준은 사용한 양 기준입니다. 남은 용량으로 볼 때 주의는 \(100 - manager.displayPreferences.cautionPercent)% 이하, 위험은 \(100 - manager.displayPreferences.criticalPercent)% 이하입니다. 메뉴바·팝업·위젯·터미널에 함께 적용됩니다.")
+                    .font(.caption)
+            }
+
+            Section {
                 if manager.accounts.isEmpty {
                     Text("연결된 계정이 없습니다.")
                         .foregroundStyle(.secondary)
@@ -44,10 +84,10 @@ struct SettingsView: View {
                 }
                 addMenu
             } header: {
-                Text("연결된 계정")
+                Text("연결된 구독 계정")
             } footer: {
                 // `~` 가 마크다운 취소선으로 해석되지 않도록 verbatim 으로 표시한다.
-                Text(verbatim: "계정 하나는 CLI 설정 폴더 하나에 대응합니다. 두 번째 계정은 다른 폴더로 로그인한 뒤 그 폴더를 추가하세요.\n예) CLAUDE_CONFIG_DIR=~/.claude-work claude\n예) CODEX_HOME=~/.codex-work codex login")
+                Text(verbatim: "CLI에 로그인된 구독 계정을 연결합니다. 다른 계정은 별도로 로그인한 설정 폴더를 선택하세요.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
                     .textSelection(.enabled)
@@ -62,34 +102,6 @@ struct SettingsView: View {
                 }
             }
 
-            Section {
-                Picker("퍼센트 표시", selection: $manager.displayPreferences.showsRemaining) {
-                    Text("남은 용량").tag(true)
-                    Text("사용한 양").tag(false)
-                }
-                Stepper("주의 (주황): 사용률 \(manager.displayPreferences.cautionPercent)% 이상",
-                        value: $manager.displayPreferences.cautionPercent,
-                        in: 1...(manager.displayPreferences.criticalPercent - 1))
-                Stepper("위험 (빨강): 사용률 \(manager.displayPreferences.criticalPercent)% 이상",
-                        value: $manager.displayPreferences.criticalPercent,
-                        in: (manager.displayPreferences.cautionPercent + 1)...100)
-                HStack {
-                    ForEach([UsageLevel.comfortable, .caution, .critical], id: \.label) { level in
-                        Label(level.label, systemImage: "circle.fill")
-                            .foregroundStyle(level.color)
-                    }
-                }
-                .font(.caption)
-                Button("표시 설정 기본값으로 복원") {
-                    manager.displayPreferences = .init()
-                }
-            } header: {
-                Text("용량 표시 · 색상 기준")
-            } footer: {
-                Text("색상 기준은 사용한 양 기준입니다. 남은 용량으로 볼 때 주의는 \(100 - manager.displayPreferences.cautionPercent)% 이하, 위험은 \(100 - manager.displayPreferences.criticalPercent)% 이하입니다. 메뉴바·팝업·위젯·터미널에 함께 적용됩니다.")
-                    .font(.caption)
-            }
-
             Section("새로고침") {
                 Picker("자동 폴링 주기", selection: $manager.pollingInterval) {
                     Text("1분").tag(TimeInterval(60))
@@ -100,14 +112,61 @@ struct SettingsView: View {
             }
         }
         .formStyle(.grouped)
-        .frame(width: 460)
-        .frame(height: 680)
+        .tint(YoUsageStyle.accent)
+        .frame(width: 520)
+        .frame(height: 740)
         .onAppear { loginItemStatus = SMAppService.mainApp.status }
         .onChange(of: scenePhase) { _, phase in
             if phase == .active {
                 loginItemStatus = SMAppService.mainApp.status
             }
         }
+    }
+
+    private var displayPreview: some View {
+        let preferences = manager.displayPreferences
+        return VStack(alignment: .leading, spacing: 12) {
+            HStack {
+                Text("표시 미리보기")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                Spacer()
+                Text("사용률 50% 예시")
+                    .font(.caption2)
+                    .foregroundStyle(.tertiary)
+            }
+            HStack(spacing: 16) {
+                UsageRing(usedPercent: 50, lineWidth: 5)
+                    .frame(width: 42, height: 42)
+                Text("\(Int(preferences.percent(used: 50)))% \(preferences.label)")
+                    .font(.system(size: 23, weight: .semibold, design: .rounded))
+                Spacer()
+                Text(UsageLevel(usedPercent: 50, preferences: preferences).label)
+                    .font(.caption.weight(.medium))
+                    .foregroundStyle(UsageLevel(usedPercent: 50, preferences: preferences).color)
+            }
+            GeometryReader { proxy in
+                HStack(spacing: 2) {
+                    Rectangle().fill(UsageLevel.comfortable.color)
+                        .frame(width: proxy.size.width * Double(preferences.cautionPercent) / 100)
+                    Rectangle().fill(UsageLevel.caution.color)
+                        .frame(width: max(0, proxy.size.width * Double(preferences.criticalPercent - preferences.cautionPercent) / 100 - 2))
+                    Rectangle().fill(UsageLevel.critical.color)
+                }
+                .clipShape(.capsule)
+            }
+            .frame(height: 5)
+            HStack {
+                Text("사용 0%")
+                Spacer()
+                Text("주의 \(preferences.cautionPercent)% · 위험 \(preferences.criticalPercent)%")
+                Spacer()
+                Text("100%")
+            }
+            .font(.system(size: 10))
+            .foregroundStyle(.secondary)
+        }
+        .padding(.vertical, 8)
     }
 
     private func setLaunchAtLogin(_ enabled: Bool) {

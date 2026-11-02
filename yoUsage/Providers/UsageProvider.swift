@@ -16,6 +16,7 @@ enum UsageError: LocalizedError {
     /// 토큰이 만료됨. 연관값은 해결 방법 안내.
     case tokenExpired(String)
     case http(Int)
+    case subscriptionRequired
     case invalidResponse
 
     var errorDescription: String? {
@@ -24,6 +25,7 @@ enum UsageError: LocalizedError {
         case .notAuthenticated(let hint): "로그인 정보를 찾을 수 없습니다. \(hint)"
         case .tokenExpired(let hint): "토큰이 만료되었습니다. \(hint)"
         case .http(let status): "사용량 서버가 오류를 반환했습니다 (HTTP \(status))."
+        case .subscriptionRequired: "API 키로 연결된 계정입니다. yoUsage는 구독 한도를 표시하며 API 비용 추적은 지원하지 않습니다."
         case .invalidResponse: "응답을 해석할 수 없습니다."
         }
     }

@@ -16,7 +16,7 @@ struct YoUsageWidget: Widget {
                 .environment(\.usageDisplayPreferences, entry.preferences)
         }
         .configurationDisplayName("yoUsage")
-        .description("활성 계정의 잔여 쿼터와 리셋 시간을 보여줍니다.")
+        .description("구독 계정의 한도와 리셋 시간을 보여줍니다.")
         .supportedFamilies([.systemSmall])
     }
 }
@@ -58,7 +58,9 @@ struct YoUsageWidgetView: View {
         if let usage = entry.usage {
             VStack(spacing: 6) {
                 HStack(spacing: 4) {
-                    Image(systemName: usage.provider.symbolName)
+                    YoUsageMark()
+                        .fill(YoUsageStyle.accent)
+                        .frame(width: 16, height: 16)
                     Text(usage.name)
                         .lineLimit(1)
                 }
@@ -71,7 +73,7 @@ struct YoUsageWidgetView: View {
                             Text(entry.preferences.percent(used: usage.usedPercent) / 100, format: .percent.precision(.fractionLength(0)))
                                 .font(.title2.weight(.bold))
                                 .monospacedDigit()
-                            Text(entry.preferences.label)
+                            Text("구독 · \(entry.preferences.label)")
                                 .font(.caption2)
                                 .foregroundStyle(.secondary)
                         }

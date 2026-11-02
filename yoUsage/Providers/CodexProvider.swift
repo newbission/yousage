@@ -14,9 +14,15 @@ struct CodexProvider: UsageProvider {
     func fetchUsage(for account: Account) async throws -> AccountUsage {
         let authURL = account.configDirectory.appending(path: "auth.json")
         guard let authData = try? Data(contentsOf: authURL),
-              let tokens = try? JSONDecoder().decode(AuthFile.self, from: authData).tokens
+              let auth = try? JSONDecoder().decode(AuthFile.self, from: authData)
         else {
-            throw UsageError.notAuthenticated("터미널에서 `codex login` 으로 ChatGPT 계정에 로그인해 주세요.")
+            throw UsageError.notAuthenticated("터미널에서 `codex login`으로 ChatGPT 구독 계정에 로그인해 주세요.")
+        }
+        guard let tokens = auth.tokens else {
+            if auth.apiKey != nil || auth.authMode == "apikey" {
+                throw UsageError.subscriptionRequired
+            }
+            throw UsageError.notAuthenticated("터미널에서 `codex login`으로 ChatGPT 구독 계정에 로그인해 주세요.")
         }
 
         var request = URLRequest(url: Self.usageURL)
@@ -65,6 +71,14 @@ private struct AuthFile: Decodable {
 
     /// API 키로만 로그인한 경우 `nil`. 이때는 구독 한도 자체가 없다.
     var tokens: Tokens?
+    var apiKey: String?
+    var authMode: String?
+
+    enum CodingKeys: String, CodingKey {
+        case tokens
+        case apiKey = "OPENAI_API_KEY"
+        case authMode = "auth_mode"
+    }
 }
 
 private struct IDTokenClaims: Decodable {
