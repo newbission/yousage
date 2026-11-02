@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct AccountCardView: View {
+    @Environment(\.usageDisplayPreferences) private var preferences
     let account: Account
     let usage: AccountUsage?
     let errorMessage: String?
@@ -82,14 +83,14 @@ struct AccountCardView: View {
     private func gauge(for usage: AccountUsage) -> some View {
         VStack(alignment: .leading, spacing: 4) {
             HStack(alignment: .firstTextBaseline) {
-                Text("5시간 윈도우")
+                Text("5시간 · \(preferences.label)")
                     .font(.caption)
                     .foregroundStyle(.secondary)
                 Spacer()
-                Text(usage.level.label)
+                Text(UsageLevel(usedPercent: usage.usedPercent, preferences: preferences).label)
                     .font(.caption2.weight(.semibold))
-                    .foregroundStyle(usage.level.color)
-                Text(usage.usedPercent / 100, format: .percent.precision(.fractionLength(0)))
+                    .foregroundStyle(UsageLevel(usedPercent: usage.usedPercent, preferences: preferences).color)
+                Text(preferences.percent(used: usage.usedPercent) / 100, format: .percent.precision(.fractionLength(0)))
                     .font(.callout.weight(.semibold))
                     .monospacedDigit()
                     .contentTransition(.numericText())
@@ -120,10 +121,10 @@ struct AccountCardView: View {
         Grid(alignment: .leading, horizontalSpacing: 8, verticalSpacing: 5) {
             ForEach(usage.additionalLimits) { limit in
                 GridRow {
-                    Text(limit.title)
+                    Text("\(limit.title) · \(preferences.label)")
                     UsageBar(usedPercent: limit.usedPercent)
                         .frame(height: 4)
-                    Text(limit.usedPercent / 100, format: .percent.precision(.fractionLength(0)))
+                    Text(preferences.percent(used: limit.usedPercent) / 100, format: .percent.precision(.fractionLength(0)))
                         .monospacedDigit()
                         .gridColumnAlignment(.trailing)
                     if let resetDate = limit.resetDate {
@@ -143,17 +144,18 @@ struct AccountCardView: View {
 
 /// 상태 색으로 채워지는 가로 막대. 시스템 Gauge 는 창이 비활성일 때 회색으로 바뀌므로 직접 그린다.
 private struct UsageBar: View {
+    @Environment(\.usageDisplayPreferences) private var preferences
     let usedPercent: Double
 
     var body: some View {
-        let color = UsageLevel(usedPercent: usedPercent).color
+        let color = UsageLevel(usedPercent: usedPercent, preferences: preferences).color
         Capsule()
             .fill(color.opacity(0.2))
             .overlay(alignment: .leading) {
                 GeometryReader { proxy in
                     Capsule()
                         .fill(color.gradient)
-                        .frame(width: proxy.size.width * min(max(usedPercent / 100, 0), 1))
+                        .frame(width: proxy.size.width * preferences.percent(used: usedPercent) / 100)
                 }
             }
             .animation(.smooth, value: usedPercent)

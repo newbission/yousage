@@ -15,18 +15,19 @@ struct ResetCountdownText: View {
     }
 }
 
-/// 원형 사용률 게이지.
+/// 남은 쿼터를 표시하는 원형 게이지. 색상은 소진한 비율에 따라 경고한다.
 struct UsageRing: View {
+    @Environment(\.usageDisplayPreferences) private var preferences
     let usedPercent: Double
     var lineWidth: CGFloat = 8
 
     var body: some View {
-        let level = UsageLevel(usedPercent: usedPercent)
+        let level = UsageLevel(usedPercent: usedPercent, preferences: preferences)
         ZStack {
             Circle()
                 .stroke(level.color.opacity(0.2), lineWidth: lineWidth)
             Circle()
-                .trim(from: 0, to: min(max(usedPercent / 100, 0), 1))
+                .trim(from: 0, to: preferences.percent(used: usedPercent) / 100)
                 .stroke(level.color, style: StrokeStyle(lineWidth: lineWidth, lineCap: .round))
                 .rotationEffect(.degrees(-90))
         }

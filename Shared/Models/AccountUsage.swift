@@ -56,6 +56,8 @@ struct UsageLimit: Identifiable, Codable, Hashable, Sendable {
     /// 0...100
     var usedPercent: Double
     var resetDate: Date?
+
+    var remainingPercent: Double { min(max(100 - usedPercent, 0), 100) }
 }
 
 /// 한 계정의 현재 사용량 스냅샷.
@@ -72,7 +74,7 @@ struct AccountUsage: Identifiable, Codable, Hashable, Sendable {
     var resetDate: Date?
     var additionalLimits: [UsageLimit]
 
-    var remainingPercent: Double { 100 - usedPercent }
+    var remainingPercent: Double { min(max(100 - usedPercent, 0), 100) }
     var level: UsageLevel { UsageLevel(usedPercent: usedPercent) }
 }
 
@@ -81,6 +83,7 @@ struct UsageSnapshot: Codable, Sendable {
     var usages: [AccountUsage]
     var activeAccountID: UUID?
     var updatedAt: Date
+    var displayPreferences: UsageDisplayPreferences? = nil
 
     var activeUsage: AccountUsage? {
         usages.first { $0.id == activeAccountID } ?? usages.first
@@ -99,4 +102,17 @@ extension AccountUsage {
         resetDate: .now.addingTimeInterval(3 * 3600 + 12 * 60),
         additionalLimits: []
     )
+}
+
+/// 경고 기준은 표시 방향과 무관하게 사용률로 저장한다.
+struct UsageDisplayPreferences: Codable, Equatable, Sendable {
+    var showsRemaining = true
+    var cautionPercent = 60
+    var criticalPercent = 85
+
+    var label: String { showsRemaining ? "남음" : "사용" }
+    func percent(used: Double) -> Double {
+        let clamped = min(max(used, 0), 100)
+        return showsRemaining ? 100 - clamped : clamped
+    }
 }

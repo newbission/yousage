@@ -10,11 +10,12 @@ enum AppGroup {
     }
 }
 
-/// 메인 앱이 쓰고 위젯이 읽는 JSON 스냅샷 저장소.
+/// 메인 앱이 쓰고 위젯과 `yousage` 명령이 읽는 JSON 스냅샷 저장소.
 ///
-/// 기본은 App Group 컨테이너다. 다만 Team 없이 ad-hoc 서명한 빌드에서는 샌드박스 밖의 앱이
-/// 그룹 컨테이너에 쓸 수 없으므로(EPERM), 그때는 `~/Library/Application Support/yoUsage/` 에 쓴다.
-/// 위젯은 이 폴더에 대한 읽기 전용 샌드박스 예외를 갖고 있고, 두 위치 중 더 최신인 쪽을 읽는다.
+/// 앱은 App Group 컨테이너와 `~/Library/Application Support/yoUsage/` 두 곳에 쓴다.
+/// Team 없이 ad-hoc 서명한 빌드에서는 샌드박스 밖의 앱이 그룹 컨테이너에 쓸 수 없고(EPERM),
+/// 터미널 명령은 그룹 컨테이너를 읽을 수 없기 때문이다.
+/// 위젯은 뒤쪽 폴더에 대한 읽기 전용 샌드박스 예외를 갖고 있고, 두 위치 중 더 최신인 쪽을 읽는다.
 enum SharedStore {
     private static let fileName = "usage-snapshot.json"
 
@@ -31,10 +32,16 @@ enum SharedStore {
 
     static func save(_ snapshot: UsageSnapshot) throws {
         let data = try JSONEncoder().encode(snapshot)
-        if let groupURL, (try? data.write(to: groupURL, options: .atomic)) != nil { return }
+        if let groupURL { try? data.write(to: groupURL, options: .atomic) }
         guard let fallbackURL else { throw CocoaError(.fileWriteNoPermission) }
         try FileManager.default.createDirectory(at: fallbackURL.deletingLastPathComponent(), withIntermediateDirectories: true)
         try data.write(to: fallbackURL, options: .atomic)
+    }
+
+    /// App Group 권한이 없는 프로세스(터미널 명령)용.
+    static func loadFallback() -> UsageSnapshot? {
+        guard let fallbackURL, let data = try? Data(contentsOf: fallbackURL) else { return nil }
+        return try? JSONDecoder().decode(UsageSnapshot.self, from: data)
     }
 
     static func load() -> UsageSnapshot? {

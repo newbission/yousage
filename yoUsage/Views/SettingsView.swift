@@ -1,12 +1,39 @@
 import SwiftUI
+import ServiceManagement
 
 struct SettingsView: View {
     @Environment(UsageManager.self) private var manager
+    @Environment(\.scenePhase) private var scenePhase
+    @State private var loginItemStatus = SMAppService.mainApp.status
+    @State private var loginItemError: String?
 
     var body: some View {
         @Bindable var manager = manager
 
         Form {
+            Section("일반") {
+                Toggle("로그인 시 자동 시작", isOn: Binding(
+                    get: { loginItemStatus == .enabled || loginItemStatus == .requiresApproval },
+                    set: { setLaunchAtLogin($0) }
+                ))
+
+                if loginItemStatus == .requiresApproval {
+                    Text("자동 시작을 허용하려면 시스템 설정의 로그인 항목에서 yoUsage를 켜 주세요.")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                    Button("로그인 항목 설정 열기") {
+                        SMAppService.openSystemSettingsLoginItems()
+                    }
+                }
+
+                if let loginItemError {
+                    Text(loginItemError)
+                        .font(.caption)
+                        .foregroundStyle(.red)
+                        .textSelection(.enabled)
+                }
+            }
+
             Section {
                 if manager.accounts.isEmpty {
                     Text("연결된 계정이 없습니다.")
@@ -35,6 +62,34 @@ struct SettingsView: View {
                 }
             }
 
+            Section {
+                Picker("퍼센트 표시", selection: $manager.displayPreferences.showsRemaining) {
+                    Text("남은 용량").tag(true)
+                    Text("사용한 양").tag(false)
+                }
+                Stepper("주의 (주황): 사용률 \(manager.displayPreferences.cautionPercent)% 이상",
+                        value: $manager.displayPreferences.cautionPercent,
+                        in: 1...(manager.displayPreferences.criticalPercent - 1))
+                Stepper("위험 (빨강): 사용률 \(manager.displayPreferences.criticalPercent)% 이상",
+                        value: $manager.displayPreferences.criticalPercent,
+                        in: (manager.displayPreferences.cautionPercent + 1)...100)
+                HStack {
+                    ForEach([UsageLevel.comfortable, .caution, .critical], id: \.label) { level in
+                        Label(level.label, systemImage: "circle.fill")
+                            .foregroundStyle(level.color)
+                    }
+                }
+                .font(.caption)
+                Button("표시 설정 기본값으로 복원") {
+                    manager.displayPreferences = .init()
+                }
+            } header: {
+                Text("용량 표시 · 색상 기준")
+            } footer: {
+                Text("색상 기준은 사용한 양 기준입니다. 남은 용량으로 볼 때 주의는 \(100 - manager.displayPreferences.cautionPercent)% 이하, 위험은 \(100 - manager.displayPreferences.criticalPercent)% 이하입니다. 메뉴바·팝업·위젯·터미널에 함께 적용됩니다.")
+                    .font(.caption)
+            }
+
             Section("새로고침") {
                 Picker("자동 폴링 주기", selection: $manager.pollingInterval) {
                     Text("1분").tag(TimeInterval(60))
@@ -46,7 +101,27 @@ struct SettingsView: View {
         }
         .formStyle(.grouped)
         .frame(width: 460)
-        .fixedSize(horizontal: false, vertical: true)
+        .frame(height: 680)
+        .onAppear { loginItemStatus = SMAppService.mainApp.status }
+        .onChange(of: scenePhase) { _, phase in
+            if phase == .active {
+                loginItemStatus = SMAppService.mainApp.status
+            }
+        }
+    }
+
+    private func setLaunchAtLogin(_ enabled: Bool) {
+        loginItemError = nil
+        do {
+            if enabled {
+                try SMAppService.mainApp.register()
+            } else {
+                try SMAppService.mainApp.unregister()
+            }
+        } catch {
+            loginItemError = "자동 시작 설정을 변경하지 못했습니다: \(error.localizedDescription)"
+        }
+        loginItemStatus = SMAppService.mainApp.status
     }
 
     private func accountRow(_ account: Account) -> some View {

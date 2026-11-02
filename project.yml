@@ -48,6 +48,9 @@ targets:
           - $(APP_GROUP_ID)
     dependencies:
       - target: yoUsageWidget
+      - target: yoUsageCLI
+        embed: false
+        link: false
 
   yoUsageWidget:
     type: app-extension
@@ -76,3 +79,17 @@ targets:
           - /Library/Application Support/yoUsage/
         com.apple.security.application-groups:
           - $(APP_GROUP_ID)
+
+  # 터미널에서 스냅샷을 읽어 보여 주는 `yousage` 명령 (SSH · tmux · zellij · Claude Code 상태줄용)
+  yoUsageCLI:
+    type: tool
+    platform: macOS
+    sources:
+      - yoUsageCLI
+      - Shared/Models
+      - Shared/Storage
+    settings:
+      base:
+        PRODUCT_NAME: yousage
+        PRODUCT_MODULE_NAME: YoUsageCLI
+        PRODUCT_BUNDLE_IDENTIFIER: com.yousage.cli

@@ -12,6 +12,13 @@ final class UsageManager {
     private(set) var isRefreshing = false
     private(set) var lastUpdated: Date?
 
+    var displayPreferences: UsageDisplayPreferences {
+        didSet {
+            defaults.set(try? JSONEncoder().encode(displayPreferences), forKey: "displayPreferences")
+            publishSnapshot()
+        }
+    }
+
     /// 메뉴바와 위젯에 표시할 계정.
     var activeAccountID: Account.ID? {
         didSet {
@@ -50,6 +57,8 @@ final class UsageManager {
         self.defaults = defaults
         self.sharesWithWidget = sharesWithWidget
 
+        displayPreferences = defaults.data(forKey: "displayPreferences")
+            .flatMap { try? JSONDecoder().decode(UsageDisplayPreferences.self, from: $0) } ?? .init()
         let stored = defaults.data(forKey: Keys.accounts).flatMap { try? JSONDecoder().decode([Account].self, from: $0) }
         let accounts = stored ?? Self.detectAccounts()
         self.accounts = accounts
@@ -60,6 +69,10 @@ final class UsageManager {
             ?? accounts.first?.id
 
         if stored == nil { saveAccounts() }
+        // 실행 직후 조회가 실패해도(예: 429) 마지막으로 받은 값은 보여 준다.
+        if sharesWithWidget, let saved = SharedStore.load() {
+            usages = saved.usages.filter { usage in accounts.contains { $0.id == usage.id } }
+        }
         startPolling()
     }
 
@@ -210,13 +223,14 @@ final class UsageManager {
     // MARK: - Widget
 
     private func publishSnapshot() {
-        guard sharesWithWidget, let lastUpdated else { return }
-        let snapshot = UsageSnapshot(usages: usages, activeAccountID: activeAccountID, updatedAt: lastUpdated)
+        guard sharesWithWidget else { return }
+        guard let snapshotDate = lastUpdated ?? SharedStore.load()?.updatedAt else { return }
+        let snapshot = UsageSnapshot(usages: usages, activeAccountID: activeAccountID, updatedAt: snapshotDate, displayPreferences: displayPreferences)
         do {
             try SharedStore.save(snapshot)
             WidgetCenter.shared.reloadAllTimelines()
         } catch {
-            // App Group 컨테이너를 쓸 수 없는 빌드에서는 위젯 공유만 건너뛴다.
+            // 저장에 실패하면 위젯·터미널 공유만 건너뛴다.
             Diagnostics.record("widget-snapshot-error", "\(AppGroup.identifier): \(error)")
         }
     }

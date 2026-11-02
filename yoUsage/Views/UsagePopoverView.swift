@@ -68,8 +68,8 @@ struct UsagePopoverView: View {
     private var summary: String {
         if manager.accounts.isEmpty { return "연결된 계정 없음" }
         guard let lastUpdated = manager.lastUpdated else { return "불러오는 중…" }
-        let critical = manager.usages.count { $0.level == .critical }
-        let caution = manager.usages.count { $0.level == .caution }
+        let critical = manager.usages.count { UsageLevel(usedPercent: $0.usedPercent, preferences: manager.displayPreferences) == .critical }
+        let caution = manager.usages.count { UsageLevel(usedPercent: $0.usedPercent, preferences: manager.displayPreferences) == .caution }
         let status = if critical > 0 {
             "\(critical)개 계정 한도 임박"
         } else if caution > 0 {

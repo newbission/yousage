@@ -3,7 +3,7 @@ import Foundation
 
 /// Claude Code CLI 가 저장해 둔 OAuth 토큰으로 Anthropic 사용량 API 를 직접 호출한다.
 ///
-/// 1. 키체인(`Claude Code-credentials`)에서 액세스 토큰을 읽는다. 읽기 전용이며 토큰을 갱신·수정하지 않는다.
+/// 1. 키체인(`Claude Code-credentials`) 또는 `<설정 폴더>/.credentials.json` 에서 액세스 토큰을 읽는다. 읽기 전용이며 토큰을 갱신·수정하지 않는다.
 /// 2. `GET https://api.anthropic.com/api/oauth/usage` 를 호출한다 (Claude Code 의 `/usage` 와 같은 데이터).
 /// 3. `five_hour`, `seven_day` 등의 사용률과 리셋 시각을 `AccountUsage` 로 변환한다.
 struct ClaudeCodeProvider: UsageProvider {
@@ -61,17 +61,27 @@ struct ClaudeCodeProvider: UsageProvider {
     // MARK: - Credentials
 
     private func loadCredentials(for account: Account) async throws -> Credentials {
-        // macOS 에서는 키체인, 그 외(또는 키체인을 못 쓰는 환경)에서는 설정 폴더의 파일에 저장된다.
+        // 보통은 키체인에 저장되지만, 키체인을 못 쓰는 세션(SSH 등)에서 실행된 Claude Code 는
+        // 설정 폴더의 파일에 토큰을 갱신해 둔다. 두 곳을 모두 읽어 만료가 더 늦은 쪽을 쓴다.
         let keychain = await runProcess(
             "/usr/bin/security",
             arguments: ["find-generic-password", "-s", keychainService(for: account), "-w"]
         )
         let file = try? Data(contentsOf: account.configDirectory.appending(path: ".credentials.json"))
 
-        for data in [keychain, file].compactMap({ $0 }) {
-            if let credentials = try? JSONDecoder().decode(CredentialsFile.self, from: data).claudeAiOauth {
-                return credentials
-            }
+        let candidates = [("keychain", keychain), ("file", file)].compactMap { source, data in
+            data.flatMap { try? JSONDecoder().decode(CredentialsFile.self, from: $0).claudeAiOauth }
+                .map { (source: source, credentials: $0) }
+        }
+        Diagnostics.record(
+            "claudeCode-credential-sources",
+            candidates.map { "\($0.source): 만료 \($0.credentials.expirationDate?.formatted(.iso8601) ?? "알 수 없음")" }
+                .joined(separator: "\n")
+        )
+        if let newest = candidates.max(by: {
+            ($0.credentials.expirationDate ?? .distantPast) < ($1.credentials.expirationDate ?? .distantPast)
+        }) {
+            return newest.credentials
         }
         throw UsageError.notAuthenticated("Claude Code 에서 /login 으로 로그인해 주세요.")
     }
@@ -102,6 +112,12 @@ private struct Credentials: Decodable {
     var accessToken: String
     var subscriptionType: String?
     var rateLimitTier: String?
+    /// Unix epoch (밀리초)
+    var expiresAt: Double?
+
+    var expirationDate: Date? {
+        expiresAt.map { Date(timeIntervalSince1970: $0 / 1000) }
+    }
 
     /// 예) subscriptionType "max" + rateLimitTier "default_claude_max_20x" → "Max 20x"
     var planName: String? {

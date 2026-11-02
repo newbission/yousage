@@ -13,6 +13,7 @@ struct YoUsageWidget: Widget {
         StaticConfiguration(kind: "yoUsageWidget", provider: UsageTimelineProvider()) { entry in
             YoUsageWidgetView(entry: entry)
                 .containerBackground(.fill.tertiary, for: .widget)
+                .environment(\.usageDisplayPreferences, entry.preferences)
         }
         .configurationDisplayName("yoUsage")
         .description("활성 계정의 잔여 쿼터와 리셋 시간을 보여줍니다.")
@@ -23,6 +24,7 @@ struct YoUsageWidget: Widget {
 struct UsageEntry: TimelineEntry {
     let date: Date
     let usage: AccountUsage?
+    var preferences = UsageDisplayPreferences()
 }
 
 struct UsageTimelineProvider: TimelineProvider {
@@ -31,17 +33,19 @@ struct UsageTimelineProvider: TimelineProvider {
     }
 
     func getSnapshot(in context: Context, completion: @escaping @Sendable (UsageEntry) -> Void) {
-        let usage = SharedStore.load()?.activeUsage
-        completion(UsageEntry(date: .now, usage: usage ?? (context.isPreview ? .placeholder : nil)))
+        let snapshot = SharedStore.load()
+        let usage = snapshot?.activeUsage
+        completion(UsageEntry(date: .now, usage: usage ?? (context.isPreview ? .placeholder : nil), preferences: snapshot?.displayPreferences ?? .init()))
     }
 
     func getTimeline(in context: Context, completion: @escaping @Sendable (Timeline<UsageEntry>) -> Void) {
         let now = Date.now
-        let usage = SharedStore.load()?.activeUsage
-        var entries = [UsageEntry(date: now, usage: usage)]
+        let snapshot = SharedStore.load()
+        let usage = snapshot?.activeUsage
+        var entries = [UsageEntry(date: now, usage: usage, preferences: snapshot?.displayPreferences ?? .init())]
         // 리셋 시각에 카운트다운 표시를 전환한다. 새 수치는 앱이 폴링 후 타임라인을 다시 로드해 반영한다.
         if let usage, let resetDate = usage.resetDate, resetDate > now {
-            entries.append(UsageEntry(date: resetDate, usage: usage))
+            entries.append(UsageEntry(date: resetDate, usage: usage, preferences: snapshot?.displayPreferences ?? .init()))
         }
         completion(Timeline(entries: entries, policy: .after(now.addingTimeInterval(15 * 60))))
     }
@@ -64,10 +68,10 @@ struct YoUsageWidgetView: View {
                 UsageRing(usedPercent: usage.usedPercent)
                     .overlay {
                         VStack(spacing: 0) {
-                            Text(usage.remainingPercent / 100, format: .percent.precision(.fractionLength(0)))
+                            Text(entry.preferences.percent(used: usage.usedPercent) / 100, format: .percent.precision(.fractionLength(0)))
                                 .font(.title2.weight(.bold))
                                 .monospacedDigit()
-                            Text("남음")
+                            Text(entry.preferences.label)
                                 .font(.caption2)
                                 .foregroundStyle(.secondary)
                         }

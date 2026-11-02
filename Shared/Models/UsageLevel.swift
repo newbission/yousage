@@ -6,10 +6,10 @@ enum UsageLevel: Sendable {
     case caution
     case critical
 
-    init(usedPercent: Double) {
+    init(usedPercent: Double, preferences: UsageDisplayPreferences = .init()) {
         switch usedPercent {
-        case ..<60: self = .comfortable
-        case ..<85: self = .caution
+        case ..<Double(preferences.cautionPercent): self = .comfortable
+        case ..<Double(preferences.criticalPercent): self = .caution
         default: self = .critical
         }
     }
@@ -28,5 +28,16 @@ enum UsageLevel: Sendable {
         case .caution: "주의"
         case .critical: "임박"
         }
+    }
+}
+
+private struct UsageDisplayPreferencesKey: EnvironmentKey {
+    static let defaultValue = UsageDisplayPreferences()
+}
+
+extension EnvironmentValues {
+    var usageDisplayPreferences: UsageDisplayPreferences {
+        get { self[UsageDisplayPreferencesKey.self] }
+        set { self[UsageDisplayPreferencesKey.self] = newValue }
     }
 }
