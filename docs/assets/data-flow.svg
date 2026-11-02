@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="294" viewBox="0 0 1200 294" role="img" aria-labelledby="title desc">
+<title id="title">How yoUsage gets your quota</title><desc id="desc">yoUsage reads local CLI credentials, requests usage from the corresponding service, and writes a snapshot. The menu bar displays usage; the widget and terminal read the snapshot.</desc>
+<defs><marker id="arrow" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto"><path d="M0 0L8 4L0 8" fill="none" stroke="#62be9c" stroke-width="1.5"/></marker></defs>
+<rect width="1200" height="294" rx="20" fill="#0e2029"/>
+<g font-family="-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif"><text x="36" y="43" fill="#92d8bc" font-size="13" letter-spacing="2">LOCAL CREDENTIALS. DIRECT REQUESTS. SHARED SNAPSHOTS.</text>
+<g fill="#19343a" stroke="#385951"><rect x="36" y="92" width="235" height="104" rx="15"/><rect x="364" y="92" width="200" height="104" rx="15"/><rect x="654" y="92" width="230" height="104" rx="15"/><rect x="974" y="92" width="190" height="104" rx="15"/></g>
+<g fill="#f0fcf6" font-size="20" font-weight="600" text-anchor="middle"><text x="153" y="131">CLI credentials</text><text x="464" y="131">yoUsage</text><text x="769" y="131">Usage API</text><text x="1069" y="131">Your surfaces</text></g>
+<g fill="#a8c5bb" font-size="14" text-anchor="middle"><text x="153" y="163">Keychain / auth files</text><text x="464" y="163">Read · poll · snapshot</text><text x="769" y="163">Anthropic / ChatGPT</text><text x="1069" y="163">Menu bar · widget · CLI</text></g>
+<g stroke="#62be9c" stroke-width="2" fill="none" marker-end="url(#arrow)"><path d="M282 143H350"/><path d="M575 128H640"/><path d="M644 165H579"/><path d="M464 206V240H1069V208"/></g>
+<g fill="#94b8aa" font-size="12" text-anchor="middle"><text x="317" y="118">read only</text><text x="608" y="108">HTTPS</text><text x="769" y="267">Usage snapshot → menu bar / widget / terminal</text></g></g></svg>

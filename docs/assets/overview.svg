@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="800" viewBox="0 0 1440 800" role="img" aria-labelledby="title desc">
+<title id="title">yoUsage — Know your limits. Keep your flow.</title><desc id="desc">Illustrative preview of Claude Code and Codex subscription quota across the macOS menu bar, widget, and terminal. All numbers are sample data.</desc>
+<defs><linearGradient id="bg" x2="1" y2="1"><stop stop-color="#0b1822"/><stop offset="1" stop-color="#12382f"/></linearGradient><linearGradient id="panel" x2="0" y2="1"><stop stop-color="#213a40"/><stop offset="1" stop-color="#14272e"/></linearGradient></defs>
+<rect width="1440" height="800" rx="32" fill="url(#bg)"/>
+<g fill="none" stroke="#8cf5c9" opacity=".07"><circle cx="1220" cy="150" r="320"/><circle cx="1220" cy="150" r="400"/><circle cx="1220" cy="150" r="480"/></g>
+<g font-family="-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif">
+<rect x="72" y="68" width="62" height="62" rx="17" fill="#173e3b"/>
+<path d="M87 110 A19 19 0 1 1 119 110" transform="translate(0 0)" fill="none" stroke="#8cf5c9" stroke-width="5" stroke-linecap="round"/>
+<path d="M103 105 L114 93" stroke="#8cf5c9" stroke-width="4" stroke-linecap="round"/>
+<text x="152" y="111" fill="#f4fff9" font-size="36" font-weight="700">yoUsage</text>
+<text x="74" y="242" fill="#f4fff9" font-size="62" font-weight="700" letter-spacing="-2">Know your limits.</text>
+<text x="74" y="316" fill="#8cf5c9" font-size="62" font-weight="700" letter-spacing="-2">Keep your flow.</text>
+<text x="77" y="373" fill="#b0c9c8" font-size="23">Claude Code + Codex subscription quotas.</text>
+<text x="77" y="408" fill="#b0c9c8" font-size="23">One quiet companion for your Mac.</text>
+<g font-size="15" fill="#bce8d7"><rect x="76" y="450" width="119" height="36" rx="18" fill="#22483f"/><text x="96" y="474">MENU BAR</text><rect x="205" y="450" width="101" height="36" rx="18" fill="#22483f"/><text x="225" y="474">WIDGET</text><rect x="316" y="450" width="121" height="36" rx="18" fill="#22483f"/><text x="336" y="474">TERMINAL</text></g>
+<rect x="785" y="62" width="579" height="45" rx="14" fill="#29433f" stroke="#49645b"/>
+<text x="809" y="91" fill="#d5e5df" font-size="16">macOS</text><path d="M1170 91 A12 12 0 1 1 1191 91" fill="none" stroke="#8cf5c9" stroke-width="3"/><text x="1204" y="91" fill="#8cf5c9" font-size="19" font-weight="600">82%</text><text x="1280" y="91" fill="#d5e5df" font-size="15">09:41</text>
+<rect x="816" y="125" width="496" height="414" rx="23" fill="url(#panel)" stroke="#45605d"/>
+<text x="845" y="166" fill="#f4fff9" font-size="22" font-weight="700">yoUsage</text><text x="845" y="193" fill="#9bbcb5" font-size="14">Subscription quotas · all accounts comfortable</text>
+<path d="M840 212 H1288" stroke="#3b5555"/>
+<rect x="839" y="231" width="450" height="134" rx="14" fill="#0e2229"/><text x="857" y="261" fill="#ecf8f3" font-size="19" font-weight="600">Claude Code</text><text x="857" y="288" fill="#a3bfb8" font-size="13">5-hour remaining</text><text x="1270" y="288" text-anchor="end" fill="#8cf5c9" font-size="20" font-weight="700">82%</text><rect x="857" y="301" width="413" height="7" rx="3.5" fill="#2b4549"/><rect x="857" y="301" width="338.66" height="7" rx="3.5" fill="#79e5b4"/><text x="857" y="337" fill="#a3bfb8" font-size="13">Resets in 3h 40m</text><text x="1270" y="337" text-anchor="end" fill="#c9ddd5" font-size="13">Weekly · 64% left</text><rect x="839" y="379" width="450" height="134" rx="14" fill="#0e2229"/><text x="857" y="409" fill="#ecf8f3" font-size="19" font-weight="600">Codex</text><text x="857" y="436" fill="#a3bfb8" font-size="13">5-hour remaining</text><text x="1270" y="436" text-anchor="end" fill="#8cf5c9" font-size="20" font-weight="700">76%</text><rect x="857" y="449" width="413" height="7" rx="3.5" fill="#2b4549"/><rect x="857" y="449" width="313.88" height="7" rx="3.5" fill="#79e5b4"/><text x="857" y="485" fill="#a3bfb8" font-size="13">Resets in 4h 12m</text><text x="1270" y="485" text-anchor="end" fill="#c9ddd5" font-size="13">Weekly · 91% left</text><rect x="76" y="556" width="689" height="167" rx="18" fill="#09151d" stroke="#36504e"/>
+<circle cx="100" cy="580" r="5" fill="#f07873"/><circle cx="118" cy="580" r="5" fill="#e9ba61"/><circle cx="136" cy="580" r="5" fill="#79ce99"/>
+<g font-family="SFMono-Regular,Menlo,monospace" font-size="16"><text x="100" y="622" fill="#a6c4bd">$ yousage --short</text><text x="100" y="657" fill="#8cf5c9">Claude Code 5h 82% · Codex 5h 76%</text><text x="100" y="693" fill="#6d918b">Your snapshot. In SSH, tmux, or your status line.</text></g>
+<rect x="816" y="564" width="496" height="159" rx="22" fill="#213b38" stroke="#45605d"/>
+<circle cx="883" cy="642" r="37" fill="none" stroke="#37544c" stroke-width="9"/><circle cx="883" cy="642" r="37" fill="none" stroke="#8cf5c9" stroke-width="9" stroke-dasharray="190 233" transform="rotate(-90 883 642)"/><text x="883" y="649" text-anchor="middle" fill="#f4fff9" font-size="21" font-weight="700">82%</text>
+<text x="946" y="616" fill="#f4fff9" font-size="20" font-weight="600">A glance is enough.</text><text x="946" y="647" fill="#aec9bf" font-size="16">Quota + reset countdown</text><text x="946" y="676" fill="#aec9bf" font-size="16">Right on your desktop.</text>
+<text x="77" y="765" fill="#72978d" font-size="13">macOS 26+ · Local CLI credentials · Read-only access</text><text x="1310" y="765" text-anchor="end" fill="#72978d" font-size="12">ILLUSTRATIVE PREVIEW / SAMPLE DATA</text>
+</g></svg>
