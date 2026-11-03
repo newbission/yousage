@@ -56,6 +56,15 @@ func png(_ image: CGImage, _ path: String) {
         let manager = UsageManager(providers: ProviderKind.allCases.map(DocumentationProvider.init),
                                    defaults: defaults, sharesWithWidget: false)
         await manager.refresh()
+        let settings = render(SettingsView().environment(manager))
+        png(settings, "\(output)/settings.png")
+        // Focused excerpts of the same rendered settings view (2× backing scale).
+        let scale = CGFloat(settings.width) / 520
+        png(settings.cropping(to: CGRect(x: 10 * scale, y: 265 * scale, width: 500 * scale, height: 390 * scale))!,
+            "\(output)/settings-display.png")
+        png(settings.cropping(to: CGRect(x: 10 * scale, y: 670 * scale, width: 500 * scale, height: 405 * scale))!,
+            "\(output)/settings-accounts.png")
+        if CommandLine.arguments.contains("--settings-only") { return }
         png(render(UsagePopoverView().environment(manager).padding(24).background(Color(red: 0.035, green: 0.075, blue: 0.10))), "\(output)/accounts.png")
         let snapshot = UsageSnapshot(usages: [sample(Account.samples[0], used: 18), sample(Account.samples[2], used: 24)],
                                      activeAccountID: Account.samples[0].id, updatedAt: referenceDate)

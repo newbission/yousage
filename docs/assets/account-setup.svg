@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="430" viewBox="0 0 1200 430" role="img" aria-labelledby="title desc">
+<title id="title">구독 계정 등록 순서</title><desc id="desc">CLI 로그인 후 설정의 계정 추가에서 서비스별 기본 폴더 또는 다른 설정 폴더를 선택하고 표시할 계정을 고릅니다. 실제 화면 캡처가 아닌 절차 안내도입니다.</desc>
+<rect width="1200" height="430" rx="24" fill="#0e2029"/>
+<g font-family="-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif">
+<text x="34" y="43" fill="#91e0c0" font-size="14" letter-spacing="1">ACCOUNT SETUP / 등록 절차 안내</text>
+<g fill="#19343a" stroke="#385951"><rect x="30" y="72" width="350" height="282" rx="18"/><rect x="425" y="72" width="350" height="282" rx="18"/><rect x="820" y="72" width="350" height="282" rx="18"/></g>
+<g fill="#8cf5c9" font-size="14" font-weight="700"><text x="53" y="106">01 / CLI에서 먼저 로그인</text><text x="448" y="106">02 / 서비스와 폴더 선택</text><text x="843" y="106">03 / 표시할 계정 선택</text></g>
+<g fill="#f0fcf6" font-size="23" font-weight="600"><text x="53" y="148">계정 하나 = 설정 폴더 하나</text><text x="448" y="148">설정 → 계정 추가</text><text x="843" y="148">설정 → 메뉴바 · 위젯</text></g>
+<g fill="#c2d8d0" font-size="16"><text x="53" y="189">기본 계정은 평소 쓰던 CLI로 로그인.</text><text x="53" y="218">추가 계정은 별도 폴더에 로그인.</text><text x="448" y="190">Claude Code / Codex 아래에서</text><text x="448" y="220">• 기본 폴더 (~/.claude, ~/.codex)</text><text x="448" y="250">• 다른 설정 폴더 선택…</text><text x="843" y="190">‘표시할 계정’에서 원하는 계정 선택.</text><text x="843" y="220">팝오버의 핀 버튼으로도 변경 가능.</text></g>
+<g fill="#8fb3a7" font-size="14"><text x="53" y="288">Claude Code: 실행 후 /login</text><text x="53" y="316">Codex: codex login</text><text x="448" y="312">폴더 선택 창에서 ‘추가’를 누릅니다.</text><text x="843" y="280">목록에서 이름을 바로 바꿀 수 있어요.</text><text x="843" y="310">삭제해도 CLI 로그인은 유지됩니다.</text></g>
+<g fill="none" stroke="#8cf5c9" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M391 213H414M407 206L414 213L407 220"/><path d="M786 213H809M802 206L809 213L802 220"/></g>
+<text x="32" y="397" fill="#8fb3a7" font-size="14">기본 폴더의 계정은 첫 실행 시 자동 감지됩니다. 다른 계정으로 CLI를 쓸 때도 같은 설정 폴더 환경 변수를 사용하세요.</text>
+</g></svg>

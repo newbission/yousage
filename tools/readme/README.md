@@ -10,3 +10,7 @@
 - 위젯은 macOS 위젯 호스트를 제외한 실제 콘텐츠 뷰를 렌더링합니다.
 
 생성물은 `docs/assets/`의 `accounts.png`, `widget.png`, `terminal.png`, `quota-poster.png`, `quota-states.gif`입니다. 임시 컴파일 결과물은 자동 삭제합니다.
+
+설정 화면도 실제 `SettingsView`를 사용합니다. 전체 항목을 보여 주기 위해 임시 복사본의 높이만 740 → 1240으로 늘립니다. 제품 소스는 수정하지 않습니다. `settings-display.png`와 `settings-accounts.png`는 동일 렌더링에서 잘라낸 영역입니다. `tools/readme/generate.sh --settings-only`로 설정 이미지만 갱신할 수 있습니다. 계정·메일은 예시이며 자동 시작을 등록하거나 실제 계정을 추가하지 않습니다.
+
+`docs/assets/account-setup.svg`는 등록 순서를 정리한 안내도입니다. 메뉴·폴더 선택 창의 캡처가 아닙니다.
